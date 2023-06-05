@@ -1,0 +1,259 @@
+1.WordCount
+import scala.io.Source
+object wordcount{
+	def main(args:Array[String]){
+	if(args.length!=1){
+	System.err.println("Error")
+	System.exit(1)
+	}
+var filename=args(0)
+val wordC=scala.collection.mutable.Map[String,Int]()
+for(line<-Source.fromFile(filename).getLines)
+for(word<-line.split(" "))
+wordC(word)=if(wordC.contains(word)) wordC(word)+1 else 1	
+println(wordC)
+for((k,v)<-wordC)
+printf("word %s occurs %d times\n",k,v)
+}
+}
+   
+2. MIN MAX
+
+import scala.io.Source
+import scala.io.StdIn
+import scala.collection.mutable.ArrayBuffer
+
+object MinMax{
+	def main(args: Array[String]):Unit = { 
+		var numArray = new ArrayBuffer[Int]()
+		println("Enter no. of elements")
+		val n = scala.io.StdIn.readInt()
+		println("Enter elements")
+		for(i<- 1 to n)
+			numArray+=scala.io.StdIn.readInt()
+		println(numArray)
+		val t=minmax(numArray)
+		println("Max is ",t._1)
+		println("Min is ",t._2)
+	}
+	def minmax(numArray: ArrayBuffer[Int]):(Int,Int)={
+		var min:Int=999
+		var max:Int=(-999)
+		for(value <- numArray){
+			if(value>max)
+				max = value
+			if(value<min)
+				min = value
+		}
+		(max,min)
+	}
+} 
+
+3.QuickSort
+/** Quick sort, functional style */
+object FunctionalQuickSort {
+  def sort(a: List[Int]): List[Int] = {
+    if (a.length < 2)
+      a
+    else {
+      val pivot = a(a.length / 2) 
+      sort(a.filter(_ < pivot)) :::
+           a.filter(_ == pivot) :::
+           sort(a.filter(_ > pivot))
+    }
+  }
+
+  def main(args: Array[String]) {
+    val xs = List(6, 2, 8, 5, 1)
+    println(xs)
+    println(sort(xs))
+  }
+}
+
+object ImperativeQuickSort {
+
+  
+  def sort(a: Array[Int]) {
+
+    def swap(i: Int, j: Int) {
+      val t = a(i); a(i) = a(j); a(j) = t
+    }
+
+    def sort1(l: Int, r: Int) {
+      val pivot = a((l + r) / 2)
+      var i = l
+      var j = r
+      while (i <= j) {
+        while (a(i) < pivot) i += 1
+        while (a(j) > pivot) j -= 1
+        if (i <= j) {
+          swap(i, j)
+          i += 1
+          j -= 1
+        }
+      }
+      if (l < j) sort1(l, j)
+      if (j < r) sort1(i, r)
+    }
+
+    if (a.length > 0)
+      sort1(0, a.length - 1)
+  }
+
+  def println(ar: Array[Int]) {
+    def print1 = {
+      def iter(i: Int): String =
+        ar(i) + (if (i < ar.length-1) "," + iter(i+1) else "")
+      if (ar.length == 0) "" else iter(0)
+    }
+    Console.println("[" + print1 + "]")
+  }
+
+  def main(args: Array[String]) {
+    var ar = Array(6,5,2,1,8);
+    println(ar)
+    sort(ar)
+    println(ar)
+  }
+
+}
+
+
+
+///////////////////////////////For Internals better version////////////////////////////////////
+
+
+object ImperativeQuickSort {
+    
+  def sort(a: Array[Int]) {
+
+    def swap(i: Int, j: Int) {
+      val t = a(i); a(i) = a(j); a(j) = t
+    }
+
+    def sort1(l: Int, r: Int) {
+      val pivot = a((l + r) / 2)
+      var i = l
+      var j = r
+      while (i <= j) {
+        while (a(i) < pivot) i += 1
+        while (a(j) > pivot) j -= 1
+        if (i <= j) {
+          swap(i, j)
+          i += 1
+          j -= 1
+        }
+      }
+      if (l < j) sort1(l, j)
+      if (j < r) sort1(i, r)
+    }
+
+    if (a.length > 0)
+      sort1(0, a.length - 1)
+  }
+
+  
+
+  def main(args: Array[String]) {
+    var ar = Array(6,5,2,1,8);
+    val list = ar.toList
+    println(list);
+    sort(ar)
+    val list1 = ar.toList
+    println(list1);
+  }
+
+}
+
+4.PatternMatching
+abstract class Notification
+
+case class SMS(mobile: String, msg: String) extends Notification
+
+case class Email(emailAddr: String, subject: String, body: String) extends Notification
+
+object Pattern{
+	
+	def showNotification(notification: Notification): String = {
+		notification match{
+			case Email(emailAddr, subject, _) => 
+				s"You got an email from $emailAddr with subject: $subject"
+			case SMS(number, message) =>
+				s"You got a SMS from $number! Message: $message"
+		}
+	}
+	def main(args: Array[String]):Unit = {
+		val someSMS = SMS("12345","Are you there?")
+		val someEmail = Email("xyz@nmit.ac.in","Big data course syllabus", "Intro to Big data, NoSQL Databases, Spark RDDS, SQL, Streaming")
+
+		println(showNotification(someSMS))
+		println(showNotification(someEmail))
+	}
+}
+
+5.WordCount
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkConf
+import org.apache.spark.rdd.RDD
+
+object WordCount{
+  def main(args: Array[String]){
+  val pathToFile="log.txt"
+  val conf=new SparkConf().setAppName("WordCount").setMaster("local[*]")
+  val sc=new SparkContext(conf)
+  val wordsRdd=sc.textFile(pathToFile).flatMap(_.split(" "))
+  val wordCountInitRdd=wordsRdd.map(word=>(word,1))
+  val wordCountRdd=wordCountInitRdd.reduceByKey((v1,v2)=>v1+v2)
+  val highFreqWords=wordCountRdd.filter(x=>x._2>4)
+  highFreqWords.saveAsTextFile("wordcountsDir")
+  }
+  }
+6.TweetMining
+import org.apache.spark.{SparkContext, SparkConf}
+
+object tweetmining {
+
+  val conf = new SparkConf().setAppName("User mining").setMaster("local[*]")
+
+  val sc = new SparkContext(conf)
+
+  var pathToFile = " "
+
+  def main(args: Array[String]) {
+    if (args.length != 1) {
+      println(" File does not exist ")
+      System.exit(1)
+    }
+
+    pathToFile = args(0)
+
+    val tweets = sc.textFile(pathToFile).mapPartitions(TweetUtils.parseFromJson(_))
+    val tweetsByUser = tweets.map(x => (x.user,x)).groupByKey()
+    val numberOfTweets = tweetsByUser.map(x=>(x._1,x._2.size))
+    val sorted = numberOfTweets.sortBy(_._2,ascending = false)
+
+    sorted.take(10).foreach(println)
+  }
+}
+
+import com.google.gson._
+
+object TweetUtils {
+  case class Tweet (
+                     id : String,
+                     user : String,
+                     userName : String,
+                     text : String,
+                     place : String,
+                     country : String,
+                     lang : String
+                   )
+
+
+  def parseFromJson(lines:Iterator[String]):Iterator[Tweet] = {
+    val gson = new Gson
+    lines.map(line => gson.fromJson(line, classOf[Tweet]))
+  }
+}
+
+
